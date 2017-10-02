@@ -1,25 +1,15 @@
 
 const TelegramBot = require('node-telegram-bot-api')
 const {log, logError} = require('./tools/logger')
-require('dotenv').config({path: '../.env'})
+require('dotenv').config()
 let users = require('../trustedUsers.json')
+let device = require('../deviceStatus.json')
 console.log(new Date())
 console.log('>> CREZERBERO is working ...')
+const bot = new TelegramBot(process.env.BOT_ACCESS_TOKEN, {polling: true}) // creating new telegram bot
 
-const token = process.env.BOT_ACCESS_TOKEN // bot access token
-
-const bot = new TelegramBot(token, {polling: true}) // creating new telegram bot
-
-const authorizedChatId = []
 const trustPassword = process.env.BOT_PASSWORD
-/*
-from schema:
-  from:  { id: 396002206,
-    is_bot: false,
-    first_name: 'charles',
-    last_name: 'silva',
-    language_code: 'es-US' }
- */
+const adminPassword = process.env.ADMIN_BOT_PASSWORD
 
 /**
  * add new trusted user
@@ -42,8 +32,29 @@ function addTrustedUser ({id, is_bot = true, first_name, last_name}) {
   }
 }
 
+function addTrustedAdmin ({id, is_bot = true, first_name, last_name}) {
+  if (!is_bot) {
+    if (users.trustedAdmins.indexOf(id) < 0) {
+      // trustedPeople is saving users id's
+      users.trustedAdmins.push(id)
+      users.adminNames.push({
+        id,
+        first_name,
+        last_name
+      })
+      return true
+    }
+  } else {
+    return false
+  }
+}
+
 function isTrusted (id) {
   return (users.trustedPeople.indexOf(id) >= 0)
+}
+
+function isAdmin (id) {
+  return (users.trustedAdmins.indexOf(id) >= 0)
 }
 
 /**
@@ -119,10 +130,10 @@ bot.onText(/^\/start/i, async (msg) => {
     const chatId = msg.chat.id
     log(chatId, msg.from, msg.text)
     await bot.sendPhoto(msg.chat.id, 'http://gph.is/1sFc0d1', {caption: `Hola ${msg.from.first_name}! bienvenido a creze!`})
-    if (authorizedChatId.indexOf(chatId) < 0) { // check if chat is not a trusted chat
+    if (!isTrusted(msg.from.id)) { // check if chat is not a trusted chat
       await bot.sendMessage(chatId, 'Parece que aun no tienes autorizacion para entrar, que te parece si me das la contraseña?')
       await bot.sendMessage(chatId, 'debes escribir algo asi:\n/password PonAquiLaContraseña ') // request password
-    } else if (authorizedChatId.indexOf(chatId) >= 0) { // check if chat is a trusted chat
+    } else if (isTrusted(msg.from.id)) { // check if chat is a trusted chat
       await showOpenDoorButton(chatId) // show 'Abrir' button
     } else {
       logError(chatId, msg.from, msg.text, 'On start method')
@@ -134,7 +145,7 @@ bot.onText(/^\/start/i, async (msg) => {
 })
 
 // validate password
-bot.onText(/^\/*password/i, async (msg) => {
+bot.onText(/^\/password/i, async (msg) => {
   try {
     const chatId = msg.chat.id
     log(chatId, msg.from, '/password attempt')
@@ -161,15 +172,97 @@ bot.onText(/^\/*password/i, async (msg) => {
 bot.onText(/^\/*alohomora/i, async (msg) => {
   try {
     const chatId = msg.chat.id
-    if (isTrusted(msg.from.id)) {
+    log(chatId, msg.from, msg.text)
+    if (isTrusted(msg.from.id) && device.isActivated) {
       await bot.sendPhoto(msg.chat.id, 'http://gph.is/1sFc0d1', {caption: `Hola ${msg.from.first_name}! bienvenido a creze!`})
       // @TODO: open door logic here
       await showOpenDoorButton(chatId)
+    } else if (!device.isActivated) {
+      await bot.sendMessage(chatId, 'Parece que el bot esta desactivado por ahora, pidele a un administrador que lo active o espera a que alguien abra la puerta')
     } else {
       await bot.sendMessage(chatId, 'Parece que aun no tienes autorizacion para entrar, que te parece si me das la contraseña?')
       await bot.sendMessage(chatId, 'debes escribir algo asi:\n/password PonAquiLaContraseña ') // request password
     }
   } catch (error) {
     console.error(new Error('Couldn´t execute /alohomora', error))
+  }
+})
+
+bot.onText(/^\/becomeAdmin/i, async (msg) => {
+  try {
+    const chatId = msg.chat.id
+    log(chatId, msg.from, 'becomeAdmin attempt')
+    const pass = msg.text.replace(/^\/becomeAdmin/i, '').trim()
+    if (pass === adminPassword && !isAdmin(msg.from.id)) {
+      addTrustedAdmin(msg.from)
+      await bot.sendMessage(chatId, `Felicidades ${msg.from.first_name} ahora eres admin`)
+    } else if (isAdmin(msg.from.id)) {
+      await bot.sendMessage(chatId, `Hola ${msg.from.first_name} tu ya eres admin`)
+    } else {
+      await bot.sendMessage(chatId, `Lo siento ${msg.from.first_name} password incorrecto, intenta de nuevo`)
+    }
+  } catch (error) {
+    console.error(new Error('Couldn´t execute /becomeAdmin', error))
+  }
+})
+
+// list users [ADMIN]
+bot.onText(/^\/*listUsers/i, async (msg) => {
+  try {
+    const chatId = msg.chat.id
+    log(chatId, msg.from, msg.text + '[ADMIN]')
+    if (isAdmin(msg.from.id)) {
+      await bot.sendMessage(chatId, `${msg.from.first_name} esta es la lista de usuarios y administradores:`)
+      let usersReport = ''
+      await users.names.forEach((user) => {
+        usersReport += '---\n'
+        usersReport += `id: ${user.id}\n`
+        usersReport += `name: ${user.first_name} ${user.last_name}\n`
+      })
+      await bot.sendMessage(chatId, `Users:\n${usersReport}`)
+      let adminsReport = ''
+      await users.adminNames.forEach((admin) => {
+        adminsReport += '---\n'
+        adminsReport += `id: ${admin.id}\n`
+        adminsReport += `name: ${admin.first_name} ${admin.last_name}\n`
+      })
+      await bot.sendMessage(chatId, `Admins:\n${adminsReport}`)
+    } else {
+      await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
+    }
+  } catch (error) {
+    console.error(new Error('Couldn´t execute /listUsers', error))
+  }
+})
+
+// turn on device
+bot.onText(/\/*turnOn/i, async (msg) => {
+  try {
+    const chatId = msg.chat.id
+    log(chatId, msg.from, msg.text + '[ADMIN]')
+    if (isAdmin(msg.from.id)) {
+      device.isActivated = true;
+      await bot.sendMessage(chatId, `${msg.from.first_name} el dispositivo fue activado`)
+    } else {
+      await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
+    }
+  } catch (error) {
+    console.error(new Error('Couldn´t execute /turnOn', error))
+  }
+})
+
+// turn off device
+bot.onText(/\/*turnOff/i, async (msg) => {
+  try {
+    const chatId = msg.chat.id
+    log(chatId, msg.from, msg.text + '[ADMIN]')
+    if (isAdmin(msg.from.id)) {
+      device.isActivated = false;
+      await bot.sendMessage(chatId, `${msg.from.first_name} el dispositivo fue desactivado`)
+    } else {
+      await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
+    }
+  } catch (error) {
+    console.error(new Error('Couldn´t execute /turnOn', error))
   }
 })

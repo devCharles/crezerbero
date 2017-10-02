@@ -1,5 +1,7 @@
 
 {
   "trustedPeople": [],
-  "names": []
+  "names": [],
+  "trustedAdmins": [],
+  "adminNames": []
 }
