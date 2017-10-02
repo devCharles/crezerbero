@@ -50,3 +50,12 @@ Estaa accion desactiva la fucnion para abrir la puerta, sin apagar el dispositiv
 
 ### /getStatus
 esta accion nos deja saber la fecha y hora en que se puso a correr el servidor del bot y el estatus del dispositivo (activado o desactivado)
+
+## Para desarrolladores:
+Para correr este codigo es necesario crear un archivo ```.env``` en la raiz del proyecto, este debe contener el token del bot para el API de telegram y las contraseñas para usuarios y administradores con la siguiete sintaxis:
+```dotenv
+# ./.env
+BOT_ACCESS_TOKEN = "ToK3nTel3g4m"
+BOT_PASSWORD = "Pa22w0rd_usuario"
+ADMIN_BOT_PASSWORD = "Pa22w0rd_admin"
+```
