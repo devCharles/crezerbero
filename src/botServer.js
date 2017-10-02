@@ -1,18 +1,17 @@
 
 const TelegramBot = require('node-telegram-bot-api')
 const {log, logError} = require('./tools/logger')
+require('dotenv').config({path: '../.env'})
 let users = require('../trustedUsers.json')
 console.log(new Date())
 console.log('>> CREZERBERO is working ...')
 
-// @TODO: migrate to dotenv file
-const token = '' // bot access token
+const token = process.env.BOT_ACCESS_TOKEN // bot access token
 
-// @TODO: migrate to dotenv file
 const bot = new TelegramBot(token, {polling: true}) // creating new telegram bot
 
 const authorizedChatId = []
-const trustPassword = 'password'
+const trustPassword = process.env.BOT_PASSWORD
 /*
 from schema:
   from:  { id: 396002206,

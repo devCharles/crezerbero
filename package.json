@@ -4,6 +4,7 @@
   "description": "bot to open creze office door",
   "main": "src/botServer.js",
   "dependencies": {
+    "dotenv": "^4.0.0",
     "node-telegram-bot-api": "^0.28.0"
   },
   "devDependencies": {},
