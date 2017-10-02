@@ -197,7 +197,7 @@ bot.onText(/^\/becomeAdmin/i, async (msg) => {
     const pass = msg.text.replace(/^\/becomeAdmin/i, '').trim()
     if (pass === adminPassword && !isAdmin(msg.from.id)) {
       addTrustedAdmin(msg.from)
-      await bot.sendMessage(chatId, `Felicidades ${msg.from.first_name} ahora eres admin`)
+      await bot.sendPhoto(msg.chat.id, 'https://goo.gl/rboJNq', {caption: `Felicidades ${msg.from.first_name} ahora eres un admin`})
     } else if (isAdmin(msg.from.id)) {
       await bot.sendMessage(chatId, `Hola ${msg.from.first_name} tu ya eres admin`)
     } else {
