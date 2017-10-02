@@ -4,7 +4,9 @@ const {log, logError} = require('./tools/logger')
 require('dotenv').config()
 let users = require('../trustedUsers.json')
 let device = require('../deviceStatus.json')
-console.log(new Date())
+device.turnedOn = new Date()
+console.log(device.turnedOn)
+
 console.log('>> CREZERBERO is working ...')
 const bot = new TelegramBot(process.env.BOT_ACCESS_TOKEN, {polling: true}) // creating new telegram bot
 
