@@ -1,0 +1,23 @@
+{
+  "name": "crezerbero",
+  "version": "1.0.0",
+  "description": "bot to open creze office door",
+  "main": "src/botServer.js",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.28.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node src/botServer.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devCharles/crezerbero.git"
+  },
+  "author": "devCharles",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devCharles/crezerbero/issues"
+  },
+  "homepage": "https://github.com/devCharles/crezerbero#readme"
+}
