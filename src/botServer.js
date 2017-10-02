@@ -268,3 +268,17 @@ bot.onText(/\/*turnOff/i, async (msg) => {
     console.error(new Error('Couldn´t execute /turnOn', error))
   }
 })
+
+bot.onText(/\/*getStatus/i, async (msg) => {
+  try {
+    const chatId = msg.chat.id
+    log(chatId, msg.from, msg.text + '[ADMIN]')
+    if (isAdmin(msg.from.id)) {
+      await bot.sendMessage(chatId, `${msg.from.first_name} el estatus es:\n> Fue encendido en la fecha: ${device.turnedOn}\n> isActivated: ${device.isActivated}`)
+    } else {
+      await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
+    }
+  } catch (error) {
+    console.error(new Error('Couldn´t execute /getStatus', error))
+  }
+})
