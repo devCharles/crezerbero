@@ -97,7 +97,7 @@ async function showWelcomeMessage (chatId, msg) {
     )
     return true
   } catch (error) {
-    throw new Error('Coldn´t be able to show welcome message', error)
+    throw new Error('Coldn´t show welcome message', error)
   }
 }
 
