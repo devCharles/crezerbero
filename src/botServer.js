@@ -243,7 +243,7 @@ bot.onText(/\/*turnOn/i, async (msg) => {
     const chatId = msg.chat.id
     log(chatId, msg.from, msg.text + '[ADMIN]')
     if (isAdmin(msg.from.id)) {
-      device.isActivated = true;
+      device.isActivated = true
       await bot.sendMessage(chatId, `${msg.from.first_name} el dispositivo fue activado`)
     } else {
       await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
@@ -259,7 +259,7 @@ bot.onText(/\/*turnOff/i, async (msg) => {
     const chatId = msg.chat.id
     log(chatId, msg.from, msg.text + '[ADMIN]')
     if (isAdmin(msg.from.id)) {
-      device.isActivated = false;
+      device.isActivated = false
       await bot.sendMessage(chatId, `${msg.from.first_name} el dispositivo fue desactivado`)
     } else {
       await bot.sendMessage(chatId, `${msg.from.first_name} necesitas ser administrador para ejecutar esta tarea, usa el comando:\n/becomeAdmin {password}\npara volverte admin`)
