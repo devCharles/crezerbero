@@ -4,6 +4,7 @@ const {log, logError} = require('./tools/logger')
 require('dotenv').config()
 let users = require('../trustedUsers.json')
 let device = require('../deviceStatus.json')
+let gpio = require('pi-gpio')
 device.turnedOn = new Date()
 console.log(device.turnedOn)
 
@@ -126,6 +127,14 @@ async function showAllowedMessage (chatId, msg) {
   }
 }
 
+function openDoor () {
+  gpio.open(16, 'output', () => {     // Open pin 16 for output
+    gpio.write(16, 1, () => {         // Set pin 16 high (1)
+      gpio.close(16)                  // Close pin 16
+    })
+  })
+}
+
 // on start
 bot.onText(/^\/start/i, async (msg) => {
   try {
@@ -177,7 +186,7 @@ bot.onText(/^\/*alohomora/i, async (msg) => {
     log(chatId, msg.from, msg.text)
     if (isTrusted(msg.from.id) && device.isActivated) {
       await bot.sendPhoto(msg.chat.id, 'http://gph.is/1sFc0d1', {caption: `Hola ${msg.from.first_name}! bienvenido a creze!`})
-      // @TODO: open door logic here
+      openDoor()  // OPNES THE DOOR
       await showOpenDoorButton(chatId)
     } else if (!device.isActivated) {
       await bot.sendMessage(chatId, 'Parece que el bot esta desactivado por ahora, pidele a un administrador que lo active o espera a que alguien abra la puerta')
